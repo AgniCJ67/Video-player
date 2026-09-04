@@ -16,6 +16,10 @@ const speedBtn = document.getElementById('speedBtn');
 const speedOptions = document.getElementById('speedOptions');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 
+// New Elements for File Upload
+const videoUpload = document.getElementById('videoUpload');
+const uploadBtn = document.getElementById('uploadBtn');
+
 // 1. Play / Pause Logic
 function togglePlay() {
     if (video.paused) {
@@ -32,10 +36,11 @@ function togglePlay() {
 }
 
 playPauseBtn.addEventListener('click', togglePlay);
-video.addEventListener('click', togglePlay); // Clicking the video toggles play/pause
+video.addEventListener('click', togglePlay);
 
-// 2. Formatting Time (MM:SS)
+// 2. Formatting Time
 function formatTime(time) {
+    if (isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
@@ -48,7 +53,6 @@ video.addEventListener('loadedmetadata', () => {
 
 video.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(video.currentTime);
-    // Calculate percentage
     const progressPercent = (video.currentTime / video.duration) * 100;
     progressBar.style.width = `${progressPercent}%`;
 });
@@ -81,7 +85,6 @@ volumeSlider.addEventListener('input', (e) => {
 
 muteBtn.addEventListener('click', () => {
     video.muted = !video.muted;
-    // Update slider position based on mute state
     volumeSlider.value = video.muted ? 0 : video.volume;
     updateVolumeIcon(video.volume);
 });
@@ -99,14 +102,12 @@ document.querySelectorAll('.speed-option').forEach(option => {
         video.playbackRate = speed;
         speedBtn.textContent = `${speed}x`;
         
-        // Update active state in menu
         document.querySelector('.speed-option.active').classList.remove('active');
         option.classList.add('active');
         speedOptions.classList.remove('active');
     });
 });
 
-// Close speed menu when clicking anywhere else
 document.addEventListener('click', () => {
     speedOptions.classList.remove('active');
 });
@@ -119,5 +120,32 @@ fullscreenBtn.addEventListener('click', () => {
         });
     } else {
         document.exitFullscreen();
+    }
+});
+
+// 8. FILE UPLOAD LOGIC (NEW)
+uploadBtn.addEventListener('click', () => {
+    videoUpload.click(); // Trigger the hidden file input
+});
+
+videoUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+        // Create a temporary local URL for the selected file
+        const fileURL = URL.createObjectURL(file);
+        
+        // Load the new video source
+        video.src = fileURL;
+        
+        // Reset progress bar visually
+        progressBar.style.width = `0%`;
+        currentTimeEl.textContent = "0:00";
+        
+        // Autoplay the selected video
+        video.play();
+        videoContainer.classList.remove('paused');
+        playIcon.style.display = 'none';
+        pauseIcon.style.display = 'block';
     }
 });
