@@ -68,8 +68,10 @@ function togglePlay() {
 }
 playPauseBtn.addEventListener('click', togglePlay);
 video.addEventListener('click', togglePlay);
-
 // --- Time and Progress ---
+const progressSlider = document.getElementById('progressSlider');
+let isScrubbing = false; // Tracks if the user is currently dragging
+
 function formatTime(time) {
     if (isNaN(time)) return "0:00";
     const min = Math.floor(time / 60);
@@ -80,14 +82,40 @@ function formatTime(time) {
 video.addEventListener('loadedmetadata', () => { 
     durationEl.textContent = formatTime(video.duration); 
 });
+
 video.addEventListener('timeupdate', () => {
-    currentTimeEl.textContent = formatTime(video.currentTime);
-    progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
+    // Only update the progress bar visually if the user IS NOT currently dragging it
+    if (!isScrubbing) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = `${percent}%`;
+        progressSlider.value = percent; // Sync the invisible slider
+        currentTimeEl.textContent = formatTime(video.currentTime);
+    }
 });
-progressContainer.addEventListener('click', (e) => {
+
+// Triggers continuously while the user drags the slider
+progressSlider.addEventListener('input', (e) => {
     if (videoContainer.classList.contains('no-media')) return;
-    video.currentTime = (e.offsetX / progressContainer.clientWidth) * video.duration;
+    isScrubbing = true;
+    const percent = e.target.value;
+    
+    // Visually update the bar and time immediately for smooth feedback
+    progressBar.style.width = `${percent}%`;
+    currentTimeEl.textContent = formatTime((percent / 100) * video.duration);
 });
+
+// Triggers once when the user releases the slider
+progressSlider.addEventListener('change', (e) => {
+    if (videoContainer.classList.contains('no-media')) return;
+    const percent = e.target.value;
+    
+    // Actually jump the video to the new time
+    video.currentTime = (percent / 100) * video.duration;
+    isScrubbing = false;
+});
+
+// (Remove the old progressContainer.addEventListener('click', ...) block entirely)
+
 
 // --- Audio Controls ---
 volumeSlider.addEventListener('input', (e) => {
