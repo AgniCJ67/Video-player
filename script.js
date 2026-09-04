@@ -16,14 +16,13 @@ const speedBtn = document.getElementById('speedBtn');
 const speedOptions = document.getElementById('speedOptions');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-// New Elements for File Upload
 const videoUpload = document.getElementById('videoUpload');
 const uploadBtn = document.getElementById('uploadBtn');
 
 // 1. Play / Pause Logic
 function togglePlay() {
     if (video.paused) {
-        video.play();
+        video.play().catch(e => console.log("Playback failed:", e));
         videoContainer.classList.remove('paused');
         playIcon.style.display = 'none';
         pauseIcon.style.display = 'block';
@@ -115,34 +114,38 @@ document.addEventListener('click', () => {
 // 7. Fullscreen Control
 fullscreenBtn.addEventListener('click', () => {
     if (!document.fullscreenElement) {
-        videoContainer.requestFullscreen().catch(err => {
-            console.error(`Error attempting to enable fullscreen: ${err.message}`);
-        });
+        if(videoContainer.requestFullscreen) {
+            videoContainer.requestFullscreen();
+        } else if(videoContainer.webkitRequestFullscreen) { /* Safari */
+            videoContainer.webkitRequestFullscreen();
+        }
     } else {
-        document.exitFullscreen();
+        if(document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if(document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+        }
     }
 });
 
-// 8. FILE UPLOAD LOGIC (NEW)
+// 8. FILE UPLOAD LOGIC
 uploadBtn.addEventListener('click', () => {
-    videoUpload.click(); // Trigger the hidden file input
+    videoUpload.click();
 });
 
 videoUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     
     if (file) {
-        // Create a temporary local URL for the selected file
         const fileURL = URL.createObjectURL(file);
         
-        // Load the new video source
+        // Remove poster once local video is loaded
+        video.removeAttribute("poster");
         video.src = fileURL;
         
-        // Reset progress bar visually
         progressBar.style.width = `0%`;
         currentTimeEl.textContent = "0:00";
         
-        // Autoplay the selected video
         video.play();
         videoContainer.classList.remove('paused');
         playIcon.style.display = 'none';
