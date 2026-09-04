@@ -13,11 +13,14 @@ const volumeSlider = document.getElementById('volumeSlider');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+// UI and Info Panels
 const videoTitleDisplay = document.getElementById('videoTitleDisplay');
+const videoInfoPanel = document.getElementById('videoInfoPanel');
+const playlistTitle = document.getElementById('playlistTitle');
+const currentPlaylistItem = document.getElementById('currentPlaylistItem');
 
 // Popups
-const qualityBtn = document.getElementById('qualityBtn');
-const qualityOptions = document.getElementById('qualityOptions');
 const speedBtn = document.getElementById('speedBtn');
 const speedOptions = document.getElementById('speedOptions');
 
@@ -54,8 +57,10 @@ video.addEventListener('pause', () => {
 });
 
 function togglePlay() {
+    // Only toggle if media is actually loaded
+    if (!video.src || videoContainer.classList.contains('no-media')) return;
+    
     if (video.paused) {
-        // If the video fails to play (e.g. source dead), it will catch here instead of breaking the UI
         video.play().catch(e => console.error("Playback failed:", e));
     } else {
         video.pause();
@@ -80,6 +85,7 @@ video.addEventListener('timeupdate', () => {
     progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
 });
 progressContainer.addEventListener('click', (e) => {
+    if (videoContainer.classList.contains('no-media')) return;
     video.currentTime = (e.offsetX / progressContainer.clientWidth) * video.duration;
 });
 
@@ -97,10 +103,9 @@ muteBtn.addEventListener('click', () => {
     muteIcon.style.display = video.muted ? 'block' : 'none';
 });
 
-// --- In-Player Popups (Quality/Speed) ---
+// --- In-Player Popups (Speed) ---
 function closePopups() {
     speedOptions.classList.remove('active');
-    qualityOptions.classList.remove('active');
 }
 speedBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -123,33 +128,38 @@ document.querySelectorAll('#speedOptions .popup-option').forEach(opt => {
 document.addEventListener('click', closePopups);
 
 fullscreenBtn.addEventListener('click', () => {
+    if (videoContainer.classList.contains('no-media')) return;
     if (!document.fullscreenElement) videoContainer.requestFullscreen();
     else document.exitFullscreen();
 });
 
-
-// --- App Sidebar & Global Settings ---
-
-// Import Media Fixed Logic
+// --- App Sidebar & File Import ---
 appImportBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    appVideoUpload.click(); // Programmatically open the file picker
+    appVideoUpload.click();
 });
 
 appVideoUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const fileURL = URL.createObjectURL(file);
-        video.removeAttribute("poster");
         video.src = fileURL;
         video.load(); 
         
+        // Remove empty state and enable UI
+        videoContainer.classList.remove('no-media');
+        videoInfoPanel.style.opacity = '1';
+        videoInfoPanel.style.pointerEvents = 'auto';
+        
+        // Update Video Title to File Name
         let fileName = file.name.replace(/\.[^/.]+$/, "");
         videoTitleDisplay.textContent = fileName;
+        playlistTitle.textContent = fileName;
         
-        qualityBtn.disabled = true;
-        qualityBtn.textContent = "Local";
-        qualityBtn.style.opacity = '0.5';
+        // Add visual flair to the active playlist item
+        const activeThumb = currentPlaylistItem.querySelector('.thumb');
+        activeThumb.style.background = 'var(--accent)';
+        
         progressBar.style.width = `0%`;
         
         video.play().catch(err => console.error("Autoplay blocked:", err));
@@ -157,14 +167,13 @@ appVideoUpload.addEventListener('change', (e) => {
     }
 });
 
-// Modal Toggle
+// --- App Settings Modal ---
 appSettingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
 closeSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
 settingsModal.addEventListener('click', (e) => {
     if(e.target === settingsModal) settingsModal.classList.remove('active');
 });
 
-// App Theme
 themeSelect.addEventListener('change', (e) => {
     document.documentElement.setAttribute('data-theme', e.target.value);
 });
