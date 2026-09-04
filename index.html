@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Professional Custom Video Player</title>
-    <!-- Link to the external CSS file -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="video-container paused" id="videoContainer">
-        <!-- Open-source sample video for demonstration -->
-        <video id="video">
-            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+        <!-- Added a poster image so it isn't black, and a more reliable video source -->
+        <video id="video" poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217" playsinline>
+            <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
 
@@ -46,14 +45,20 @@
                 </div>
 
                 <div class="controls-right">
+                    <!-- Hidden File Input for Device Videos -->
+                    <input type="file" id="videoUpload" accept="video/*" style="display: none;">
+                    
+                    <!-- Upload/Open File Button -->
+                    <button class="btn" id="uploadBtn" title="Open Video File">
+                        <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+                    </button>
+
                     <!-- Speed Adjuster -->
                     <div class="speed-control">
                         <button class="btn speed-btn" id="speedBtn">1x</button>
                         <div class="speed-options" id="speedOptions">
                             <div class="speed-option" data-speed="0.5">0.5x</div>
-                            <div class="speed-option" data-speed="0.75">0.75x</div>
-                            <div class="speed-option active" data-speed="1">1x Normal</div>
-                            <div class="speed-option" data-speed="1.25">1.25x</div>
+                            <div class="speed-option active" data-speed="1">1x</div>
                             <div class="speed-option" data-speed="1.5">1.5x</div>
                             <div class="speed-option" data-speed="2">2x</div>
                         </div>
@@ -68,7 +73,6 @@
         </div>
     </div>
 
-    <!-- Link to the external JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
