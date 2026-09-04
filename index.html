@@ -16,13 +16,12 @@
         </div>
 
         <nav class="nav-menu">
-            <!-- Visually hidden, but technically rendered so mobile browsers don't block it -->
             <input type="file" id="appVideoUpload" accept="video/*" style="opacity: 0; position: absolute; z-index: -1; width: 1px; height: 1px;">
             
-            <button class="nav-btn" id="appImportBtn">
+            <label for="appVideoUpload" class="nav-btn" id="appImportBtn">
                 <svg viewBox="0 0 24 24"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>
                 Import Video
-            </button>
+            </label>
             
             <button class="nav-btn" id="appSettingsBtn">
                 <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
@@ -45,13 +44,21 @@
 
         <div class="content-grid">
             <div class="player-column">
-                <div class="video-container paused glow-effect" id="videoContainer">
-                    <!-- Reliable Google Hosted Sample Video -->
-                    <video id="video" poster="https://peach.blender.org/wp-content/uploads/title_anouncement.jpg?x11217" playsinline>
-                        <source src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" type="video/mp4">
-                    </video>
+                <!-- Added "empty" state class by default -->
+                <div class="video-container paused glow-effect no-media" id="videoContainer">
+                    
+                    <!-- Empty State UI -->
+                    <div class="empty-state-overlay" id="emptyState">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        <h3>No Media Loaded</h3>
+                        <p>Select a video from your device to begin playback.</p>
+                        <label for="appVideoUpload" class="action-btn primary-btn mt-10">Import File</label>
+                    </div>
 
-                    <div class="controls">
+                    <!-- Clean Video Tag -->
+                    <video id="video" playsinline></video>
+
+                    <div class="controls" id="playerControls">
                         <div class="progress-container" id="progressContainer">
                             <div class="progress-bar" id="progressBar"></div>
                         </div>
@@ -76,15 +83,6 @@
 
                             <div class="controls-right">
                                 <div class="popup-control">
-                                    <button class="btn text-btn" id="qualityBtn" title="Quality">1080p</button>
-                                    <div class="popup-options" id="qualityOptions">
-                                        <div class="popup-option active" data-quality="1080p">1080p</div>
-                                        <div class="popup-option" data-quality="720p">720p</div>
-                                        <div class="popup-option" data-quality="480p">480p</div>
-                                    </div>
-                                </div>
-
-                                <div class="popup-control">
                                     <button class="btn text-btn" id="speedBtn">1x</button>
                                     <div class="popup-options" id="speedOptions">
                                         <div class="popup-option" data-speed="0.5">0.5x</div>
@@ -102,48 +100,29 @@
                     </div>
                 </div>
 
-                <div class="video-info glass-panel">
-                    <h1 id="videoTitleDisplay">For Bigger Blazes (Sample)</h1>
+                <div class="video-info glass-panel" id="videoInfoPanel" style="opacity: 0.5; pointer-events: none;">
+                    <h1 id="videoTitleDisplay">Awaiting Import...</h1>
                     <div class="video-meta">
-                        <span>1.2M views • 2 years ago</span>
+                        <span id="videoStatus">Local File • Ready to play</span>
                         <div class="action-buttons">
                             <button class="action-btn"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg> Like</button>
                             <button class="action-btn"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg> Share</button>
                         </div>
                     </div>
-                    <p class="description">A high-quality 4K sample video. Use the import button on the left to play your own files directly from your device.</p>
+                    <p class="description">Your locally imported video files will play here. No data is uploaded to any server, playback happens entirely on your device.</p>
                 </div>
             </div>
 
             <aside class="playlist-column glass-panel">
                 <h3>Up Next</h3>
                 <div class="playlist-items">
-                    <div class="playlist-item active">
-                        <div class="thumb" style="background: #3b82f6;">▶</div>
-                        <div class="info">
-                            <h4>Current Video</h4>
-                            <p>Playing Now</p>
+                    <div class="playlist-item active" id="currentPlaylistItem">
+                        <div class="thumb" style="background: var(--surface-hover); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--text-muted);">
+                            <svg viewBox="0 0 24 24" style="width: 28px; height: 28px; fill: currentColor;"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg>
                         </div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="thumb" style="background: #8b5cf6;"></div>
                         <div class="info">
-                            <h4>Nature B-Roll (4K)</h4>
-                            <p>Channel Name • 12:40</p>
-                        </div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="thumb" style="background: #ec4899;"></div>
-                        <div class="info">
-                            <h4>Ocean Waves Ambient</h4>
-                            <p>Relaxation • 1:00:00</p>
-                        </div>
-                    </div>
-                    <div class="playlist-item">
-                        <div class="thumb" style="background: #10b981;"></div>
-                        <div class="info">
-                            <h4>Synthwave Mix</h4>
-                            <p>Music • 45:20</p>
+                            <h4 id="playlistTitle">No Media</h4>
+                            <p>Waiting for file</p>
                         </div>
                     </div>
                 </div>
@@ -151,6 +130,7 @@
         </div>
     </div>
 
+    <!-- Settings Modal remains unchanged -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal-content glass-panel">
             <div class="modal-header">
