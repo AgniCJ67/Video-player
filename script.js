@@ -1,4 +1,4 @@
-// DOM Elements
+// Video Elements
 const video = document.getElementById('video');
 const videoContainer = document.getElementById('videoContainer');
 const playPauseBtn = document.getElementById('playPauseBtn');
@@ -12,143 +12,191 @@ const muteIcon = document.querySelector('.mute-icon');
 const volumeSlider = document.getElementById('volumeSlider');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const videoTitleDisplay = document.getElementById('videoTitleDisplay');
+
+// Popups
+const qualityBtn = document.getElementById('qualityBtn');
+const qualityOptions = document.getElementById('qualityOptions');
 const speedBtn = document.getElementById('speedBtn');
 const speedOptions = document.getElementById('speedOptions');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
 
-const videoUpload = document.getElementById('videoUpload');
-const uploadBtn = document.getElementById('uploadBtn');
+// App Shell Elements
+const appImportBtn = document.getElementById('appImportBtn');
+const appVideoUpload = document.getElementById('appVideoUpload');
+const appSettingsBtn = document.getElementById('appSettingsBtn');
+const settingsModal = document.getElementById('settingsModal');
+const closeSettings = document.getElementById('closeSettings');
+const themeSelect = document.getElementById('themeSelect');
 
-// 1. Play / Pause Logic
+// Filters & Settings
+const brightSlider = document.getElementById('brightSlider');
+const contrastSlider = document.getElementById('contrastSlider');
+const satSlider = document.getElementById('satSlider');
+const fpsSlider = document.getElementById('fpsSlider');
+const brightVal = document.getElementById('brightVal');
+const contrastVal = document.getElementById('contrastVal');
+const satVal = document.getElementById('satVal');
+const fpsVal = document.getElementById('fpsVal');
+const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+
+// --- Sync UI with Native Video State ---
+video.addEventListener('play', () => {
+    videoContainer.classList.remove('paused');
+    playIcon.style.display = 'none';
+    pauseIcon.style.display = 'block';
+});
+
+video.addEventListener('pause', () => {
+    videoContainer.classList.add('paused');
+    playIcon.style.display = 'block';
+    pauseIcon.style.display = 'none';
+});
+
 function togglePlay() {
     if (video.paused) {
-        video.play().catch(e => console.log("Playback failed:", e));
-        videoContainer.classList.remove('paused');
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
+        // If the video fails to play (e.g. source dead), it will catch here instead of breaking the UI
+        video.play().catch(e => console.error("Playback failed:", e));
     } else {
         video.pause();
-        videoContainer.classList.add('paused');
-        playIcon.style.display = 'block';
-        pauseIcon.style.display = 'none';
     }
 }
-
 playPauseBtn.addEventListener('click', togglePlay);
 video.addEventListener('click', togglePlay);
 
-// 2. Formatting Time
+// --- Time and Progress ---
 function formatTime(time) {
     if (isNaN(time)) return "0:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    const min = Math.floor(time / 60);
+    const sec = Math.floor(time % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
 }
 
-// 3. Update Progress Scroll Bar & Time
-video.addEventListener('loadedmetadata', () => {
-    durationEl.textContent = formatTime(video.duration);
+video.addEventListener('loadedmetadata', () => { 
+    durationEl.textContent = formatTime(video.duration); 
 });
-
 video.addEventListener('timeupdate', () => {
     currentTimeEl.textContent = formatTime(video.currentTime);
-    const progressPercent = (video.currentTime / video.duration) * 100;
-    progressBar.style.width = `${progressPercent}%`;
+    progressBar.style.width = `${(video.currentTime / video.duration) * 100}%`;
 });
-
-// 4. Seek/Scroll Functionality
 progressContainer.addEventListener('click', (e) => {
-    const width = progressContainer.clientWidth;
-    const clickX = e.offsetX;
-    const duration = video.duration;
-    video.currentTime = (clickX / width) * duration;
+    video.currentTime = (e.offsetX / progressContainer.clientWidth) * video.duration;
 });
 
-// 5. Volume / Audio Control
-function updateVolumeIcon(vol) {
-    if (vol == 0 || video.muted) {
-        volumeIcon.style.display = 'none';
-        muteIcon.style.display = 'block';
-    } else {
-        volumeIcon.style.display = 'block';
-        muteIcon.style.display = 'none';
-    }
-}
-
+// --- Audio Controls ---
 volumeSlider.addEventListener('input', (e) => {
-    const val = e.target.value;
-    video.volume = val;
-    video.muted = val === "0";
-    updateVolumeIcon(video.volume);
+    video.volume = e.target.value;
+    video.muted = e.target.value === "0";
+    volumeIcon.style.display = video.muted ? 'none' : 'block';
+    muteIcon.style.display = video.muted ? 'block' : 'none';
 });
-
 muteBtn.addEventListener('click', () => {
     video.muted = !video.muted;
     volumeSlider.value = video.muted ? 0 : video.volume;
-    updateVolumeIcon(video.volume);
+    volumeIcon.style.display = video.muted ? 'none' : 'block';
+    muteIcon.style.display = video.muted ? 'block' : 'none';
 });
 
-// 6. Playback Speed Adjustment
+// --- In-Player Popups (Quality/Speed) ---
+function closePopups() {
+    speedOptions.classList.remove('active');
+    qualityOptions.classList.remove('active');
+}
 speedBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    speedOptions.classList.toggle('active');
+    const isActive = speedOptions.classList.contains('active');
+    closePopups();
+    if (!isActive) speedOptions.classList.add('active');
 });
-
-document.querySelectorAll('.speed-option').forEach(option => {
-    option.addEventListener('click', (e) => {
+document.querySelectorAll('#speedOptions .popup-option').forEach(opt => {
+    opt.addEventListener('click', (e) => {
         e.stopPropagation();
-        const speed = option.getAttribute('data-speed');
-        video.playbackRate = speed;
-        speedBtn.textContent = `${speed}x`;
-        
-        document.querySelector('.speed-option.active').classList.remove('active');
-        option.classList.add('active');
-        speedOptions.classList.remove('active');
+        video.playbackRate = opt.dataset.speed;
+        speedBtn.textContent = `${opt.dataset.speed}x`;
+        document.querySelector('#speedOptions .active').classList.remove('active');
+        opt.classList.add('active');
+        fpsSlider.value = opt.dataset.speed * 30;
+        fpsVal.textContent = fpsSlider.value;
+        closePopups();
     });
 });
+document.addEventListener('click', closePopups);
 
-document.addEventListener('click', () => {
-    speedOptions.classList.remove('active');
-});
-
-// 7. Fullscreen Control
 fullscreenBtn.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-        if(videoContainer.requestFullscreen) {
-            videoContainer.requestFullscreen();
-        } else if(videoContainer.webkitRequestFullscreen) { /* Safari */
-            videoContainer.webkitRequestFullscreen();
-        }
-    } else {
-        if(document.exitFullscreen) {
-            document.exitFullscreen();
-        } else if(document.webkitExitFullscreen) { /* Safari */
-            document.webkitExitFullscreen();
-        }
-    }
+    if (!document.fullscreenElement) videoContainer.requestFullscreen();
+    else document.exitFullscreen();
 });
 
-// 8. FILE UPLOAD LOGIC
-uploadBtn.addEventListener('click', () => {
-    videoUpload.click();
+
+// --- App Sidebar & Global Settings ---
+
+// Import Media Fixed Logic
+appImportBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    appVideoUpload.click(); // Programmatically open the file picker
 });
 
-videoUpload.addEventListener('change', (e) => {
+appVideoUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
-    
     if (file) {
         const fileURL = URL.createObjectURL(file);
-        
-        // Remove poster once local video is loaded
         video.removeAttribute("poster");
         video.src = fileURL;
+        video.load(); 
         
+        let fileName = file.name.replace(/\.[^/.]+$/, "");
+        videoTitleDisplay.textContent = fileName;
+        
+        qualityBtn.disabled = true;
+        qualityBtn.textContent = "Local";
+        qualityBtn.style.opacity = '0.5';
         progressBar.style.width = `0%`;
-        currentTimeEl.textContent = "0:00";
         
-        video.play();
-        videoContainer.classList.remove('paused');
-        playIcon.style.display = 'none';
-        pauseIcon.style.display = 'block';
+        video.play().catch(err => console.error("Autoplay blocked:", err));
+        e.target.value = ''; 
     }
+});
+
+// Modal Toggle
+appSettingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
+closeSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+settingsModal.addEventListener('click', (e) => {
+    if(e.target === settingsModal) settingsModal.classList.remove('active');
+});
+
+// App Theme
+themeSelect.addEventListener('change', (e) => {
+    document.documentElement.setAttribute('data-theme', e.target.value);
+});
+
+// Video Visual Filters
+function applyFilters() {
+    brightVal.textContent = brightSlider.value;
+    contrastVal.textContent = contrastSlider.value;
+    satVal.textContent = satSlider.value;
+    video.style.filter = `brightness(${brightSlider.value}%) contrast(${contrastSlider.value}%) saturate(${satSlider.value}%)`;
+}
+brightSlider.addEventListener('input', applyFilters);
+contrastSlider.addEventListener('input', applyFilters);
+satSlider.addEventListener('input', applyFilters);
+
+// Simulated FPS
+fpsSlider.addEventListener('input', (e) => {
+    fpsVal.textContent = e.target.value;
+    const rate = (e.target.value / 30).toFixed(2);
+    video.playbackRate = rate;
+    speedBtn.textContent = `${rate}x`;
+    document.querySelector('#speedOptions .active')?.classList.remove('active');
+});
+
+// Reset Settings
+resetSettingsBtn.addEventListener('click', () => {
+    brightSlider.value = 100;
+    contrastSlider.value = 100;
+    satSlider.value = 100;
+    fpsSlider.value = 30;
+    themeSelect.value = "dark";
+    document.documentElement.setAttribute('data-theme', 'dark');
+    applyFilters();
+    fpsSlider.dispatchEvent(new Event('input'));
 });
