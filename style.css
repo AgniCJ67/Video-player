@@ -18,7 +18,7 @@ body {
 
 .video-container {
     position: relative;
-    width: 90%;
+    width: 100%;
     max-width: 900px;
     background: #000;
     border-radius: 12px;
@@ -32,6 +32,8 @@ body {
     width: 100%;
     display: block;
     cursor: pointer;
+    max-height: 80vh; /* Prevents it from being too tall */
+    object-fit: contain;
 }
 
 /* Controls Overlay */
@@ -67,22 +69,21 @@ body {
 }
 
 .progress-container:hover {
-    height: 8px;
+    height: 10px; /* Thicker on mobile for easier tapping */
 }
 
 .progress-bar {
     height: 100%;
-    background: #3b82f6; /* Modern Blue */
+    background: #3b82f6; 
     border-radius: 3px;
     width: 0%;
     position: relative;
 }
 
-/* Scrubber dot */
 .progress-bar::after {
     content: '';
     position: absolute;
-    right: -6px;
+    right: -7px;
     top: 50%;
     transform: translateY(-50%) scale(0);
     width: 14px;
@@ -90,10 +91,10 @@ body {
     background: #fff;
     border-radius: 50%;
     transition: transform 0.2s ease;
-    box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
-.progress-container:hover .progress-bar::after {
+.progress-container:hover .progress-bar::after,
+.progress-container:active .progress-bar::after {
     transform: translateY(-50%) scale(1);
 }
 
@@ -187,11 +188,6 @@ body {
     transition: background 0.2s;
 }
 
-.speed-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    color: #fff;
-}
-
 .speed-options {
     position: absolute;
     bottom: 45px;
@@ -202,8 +198,7 @@ body {
     flex-direction: column;
     overflow: hidden;
     display: none;
-    min-width: 90px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    min-width: 80px;
 }
 
 .speed-options.active {
@@ -211,19 +206,48 @@ body {
 }
 
 .speed-option {
-    padding: 10px 15px;
+    padding: 10px;
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
     text-align: center;
-    transition: background 0.2s;
-}
-
-.speed-option:hover {
-    background: rgba(255, 255, 255, 0.1);
 }
 
 .speed-option.active {
     color: #3b82f6;
     background: rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+    .video-container {
+        border-radius: 0; /* Looks better edge-to-edge on mobile */
+    }
+    
+    .controls {
+        padding: 15px 10px 10px;
+    }
+
+    .controls-left, .controls-right {
+        gap: 8px;
+    }
+
+    /* Hide volume slider on mobile, keep button */
+    .volume-slider {
+        display: none;
+    }
+
+    .time {
+        font-size: 12px;
+    }
+
+    .btn svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .speed-btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
 }
