@@ -22,7 +22,6 @@
             --md-sys-color-secondary: #CCC2DC;
             --md-sys-color-secondary-container: #4A4458;
             --md-sys-color-outline: #938F99;
-            --md-sys-color-surface-tint: rgba(208, 188, 255, 0.08);
             --border-radius-large: 24px;
             --border-radius-medium: 16px;
             --border-radius-pill: 9999px;
@@ -44,7 +43,6 @@
             --md-sys-color-secondary: #625B71;
             --md-sys-color-secondary-container: #E8DEF8;
             --md-sys-color-outline: #79747E;
-            --md-sys-color-surface-tint: rgba(103, 80, 164, 0.08);
             --elevation-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.1), 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
             --elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.1), 0px 1px 3px 0px rgba(0, 0, 0, 0.2);
         }
@@ -103,6 +101,8 @@
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 5; text-align: center; padding: 24px;
         }
+        .video-wrapper:not(.no-media) .empty-state { display: none !important; } 
+
         .empty-state svg { width: 48px; height: 48px; fill: var(--md-sys-color-primary); margin-bottom: 16px; }
         .empty-state h2 { font-size: 24px; margin-bottom: 8px; color: var(--md-sys-color-on-surface); }
         .empty-state p { font-size: 14px; color: var(--md-sys-color-on-surface-variant); max-width: 300px; }
@@ -150,6 +150,24 @@
         
         .time-label { color: #fff; font-size: 14px; font-weight: 500; margin: 0 8px; font-variant-numeric: tabular-nums; }
 
+        /* --- NEW: Expandable Volume Control --- */
+        .volume-group {
+            display: flex; align-items: center; transition: 0.3s ease;
+        }
+        .volume-slider-wrapper {
+            width: 0px; opacity: 0; overflow: hidden; transition: width 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+            display: flex; align-items: center;
+        }
+        .volume-slider {
+            -webkit-appearance: none; width: 100%; height: 4px; background: rgba(255,255,255,0.4); border-radius: 2px; outline: none; cursor: pointer;
+        }
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 12px; height: 12px; background: #fff; border-radius: 50%;
+        }
+        .volume-group:hover .volume-slider-wrapper {
+            width: 80px; opacity: 1; padding: 0 8px;
+        }
+
         /* Metadata Card */
         .info-card {
             background: var(--md-sys-color-surface-container); border-radius: var(--border-radius-large);
@@ -159,11 +177,12 @@
         
         .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
         .m3-btn {
-            display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px;
+            display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 16px;
             border-radius: var(--border-radius-pill); font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s;
         }
         .m3-btn.tonal { background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-surface); }
         .m3-btn.tonal:hover { filter: brightness(1.1); }
+        .m3-btn.active { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
         .m3-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
         /* --- WATCHLIST COLUMN --- */
@@ -177,7 +196,6 @@
         }
         .watchlist-header h3 { font-size: 16px; font-weight: 500; }
         
-        /* Floating Action Button (FAB) */
         .fab {
             background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
             border: none; border-radius: 16px; width: 56px; height: 56px;
@@ -223,30 +241,32 @@
         .close-btn { background: none; border: none; color: var(--md-sys-color-on-surface); cursor: pointer; }
         .close-btn svg { width: 24px; height: 24px; fill: currentColor; }
         
-        .setting-row { margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
-        .setting-row label { font-size: 14px; font-weight: 500; }
+        .setting-row { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+        .setting-row label { font-size: 14px; font-weight: 500; display: flex; justify-content: space-between;}
         .m3-select {
             background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface);
             border: 1px solid var(--md-sys-color-outline); padding: 12px; border-radius: 8px; outline: none; width: 100%;
         }
 
+        .m3-slider-input-settings { width: 100%; -webkit-appearance: none; height: 6px; background: var(--md-sys-color-outline); border-radius: 3px; outline: none; }
+        .m3-slider-input-settings::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--md-sys-color-primary); border-radius: 50%; cursor: pointer; }
+
         /* --- MOBILE LAYOUT OVERRIDES --- */
         @media (max-width: 768px) {
             body { flex-direction: column; }
-            .nav-rail { display: none; } /* Hide desktop rail */
-            
+            .nav-rail { display: none; } 
             .main-content { flex-direction: column; }
             
-            /* Player at Top */
             .player-section { padding: 0; gap: 0; flex: none; }
             .video-wrapper { border-radius: 0; max-height: 40vh; }
             .info-card { border-radius: 0; padding: 16px; box-shadow: none; border-bottom: 1px solid var(--md-sys-color-outline); }
             
-            /* Watchlist fills middle */
             .watchlist-section { width: 100%; flex: 1; border-left: none; }
-            .fab { bottom: 96px; /* Raise above bottom nav */ right: 16px; }
+            .fab { bottom: 96px; right: 16px; }
 
-            /* Bottom Navigation for Mobile */
+            /* On small screens, hide inline slider to save space, but leave mute button */
+            .volume-slider-wrapper { display: none; }
+
             .bottom-nav {
                 display: flex; justify-content: space-around; align-items: center;
                 background: var(--md-sys-color-surface-container); height: 80px; padding: 0 8px;
@@ -318,10 +338,18 @@
                                 <svg class="pause-icon" style="display: none;" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                             </button>
                             <button class="icon-btn" id="forwardBtn"><svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg></button>
-                            <button class="icon-btn" id="muteBtn">
-                                <svg class="volume-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-                                <svg class="mute-icon" style="display: none;" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
-                            </button>
+                            
+                            <!-- Expandable Volume Control -->
+                            <div class="volume-group">
+                                <button class="icon-btn" id="muteBtn">
+                                    <svg class="volume-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                                    <svg class="mute-icon" style="display: none;" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+                                </button>
+                                <div class="volume-slider-wrapper">
+                                    <input type="range" class="volume-slider" id="inlineVolumeSlider" min="0" max="1" step="0.05" value="1">
+                                </div>
+                            </div>
+
                             <span class="time-label"><span id="currentTime">0:00</span> / <span id="duration">0:00</span></span>
                         </div>
                         <div class="controls-group">
@@ -336,8 +364,14 @@
             <div class="info-card">
                 <h1 id="videoTitle">No Video Selected</h1>
                 <div class="action-row">
-                    <button class="m3-btn tonal"><svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg> Like</button>
-                    <button class="m3-btn tonal"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg> Share</button>
+                    <button class="m3-btn tonal" id="likeBtn">
+                        <svg viewBox="0 0 24 24"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg> 
+                        <span id="likeText">Like</span>
+                    </button>
+                    <button class="m3-btn tonal" id="shareBtn">
+                        <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg> 
+                        <span id="shareText">Share</span>
+                    </button>
                 </div>
             </div>
         </section>
@@ -350,11 +384,7 @@
             </div>
             
             <div class="watchlist-body" id="watchlistContainer">
-                <!-- Video Items Inject Here -->
-                
-                <!-- Hidden multiple file input -->
                 <input type="file" id="multiUpload" accept="video/*" multiple style="display: none;">
-                <!-- M3 FAB -->
                 <label for="multiUpload" class="fab" title="Add Videos">
                     <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                 </label>
@@ -369,7 +399,6 @@
             <div class="icon-pill"><svg viewBox="0 0 24 24"><path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg></div>
             <span>Player</span>
         </button>
-        <!-- Adding videos directly via Bottom Nav icon for convenience -->
         <label for="multiUpload" class="bottom-nav-item">
             <div class="icon-pill"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
             <span>Add Media</span>
@@ -395,6 +424,30 @@
                     <option value="light">Light Mode</option>
                 </select>
             </div>
+            <div class="setting-row">
+                <label>Master Volume <span>(<span id="volVal">100</span>%)</span></label>
+                <input type="range" class="m3-slider-input-settings" id="settingsVolumeSlider" min="0" max="1" step="0.05" value="1">
+            </div>
+            <div class="setting-row">
+                <label>Brightness <span>(<span id="brightVal">100</span>%)</span></label>
+                <input type="range" class="m3-slider-input-settings" id="brightSlider" min="50" max="150" value="100">
+            </div>
+            <div class="setting-row">
+                <label>Contrast <span>(<span id="contrastVal">100</span>%)</span></label>
+                <input type="range" class="m3-slider-input-settings" id="contrastSlider" min="50" max="150" value="100">
+            </div>
+            <div class="setting-row">
+                <label>Saturation <span>(<span id="satVal">100</span>%)</span></label>
+                <input type="range" class="m3-slider-input-settings" id="satSlider" min="0" max="200" value="100">
+            </div>
+            <div class="setting-row">
+                <label>Playback Speed <span>(<span id="fpsVal">1</span>x)</span></label>
+                <input type="range" class="m3-slider-input-settings" id="fpsSlider" min="0.25" max="2" step="0.25" value="1">
+            </div>
+            
+            <button class="m3-btn" id="resetSettingsBtn" style="background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); width: 100%; justify-content: center; margin-top: 16px;">
+                Reset to Default
+            </button>
         </div>
     </div>
 
@@ -415,6 +468,9 @@
         const durationEl = document.getElementById('duration');
         
         const muteBtn = document.getElementById('muteBtn');
+        const inlineVolumeSlider = document.getElementById('inlineVolumeSlider');
+        const settingsVolumeSlider = document.getElementById('settingsVolumeSlider');
+        const volVal = document.getElementById('volVal');
         const volumeIcon = document.querySelector('.volume-icon');
         const muteIcon = document.querySelector('.mute-icon');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -431,6 +487,39 @@
         const closeSettings = document.getElementById('closeSettings');
         const themeSelect = document.getElementById('themeSelect');
 
+        // Settings Elements
+        const brightSlider = document.getElementById('brightSlider');
+        const contrastSlider = document.getElementById('contrastSlider');
+        const satSlider = document.getElementById('satSlider');
+        const fpsSlider = document.getElementById('fpsSlider');
+        const brightVal = document.getElementById('brightVal');
+        const contrastVal = document.getElementById('contrastVal');
+        const satVal = document.getElementById('satVal');
+        const fpsVal = document.getElementById('fpsVal');
+        const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+
+        // Action Elements
+        const likeBtn = document.getElementById('likeBtn');
+        const likeText = document.getElementById('likeText');
+        const shareBtn = document.getElementById('shareBtn');
+        const shareText = document.getElementById('shareText');
+
+        // --- Action Buttons Logic (Like/Share) ---
+        likeBtn.addEventListener('click', () => {
+            likeBtn.classList.toggle('active');
+            if(likeBtn.classList.contains('active')){
+                likeText.textContent = "Liked";
+            } else {
+                likeText.textContent = "Like";
+            }
+        });
+
+        shareBtn.addEventListener('click', () => {
+            const originalText = shareText.textContent;
+            shareText.textContent = "Copied!";
+            setTimeout(() => { shareText.textContent = originalText; }, 2000);
+        });
+
         // --- Watchlist State ---
         let playlist = [];
         let currentIndex = -1;
@@ -442,7 +531,6 @@
             const files = Array.from(e.target.files);
             if (files.length === 0) return;
 
-            // Add new files to playlist
             files.forEach(file => {
                 playlist.push({
                     name: file.name.replace(/\.[^/.]+$/, ""),
@@ -453,16 +541,14 @@
 
             renderWatchlist();
             
-            // If nothing is playing, play the first added video
             if (currentIndex === -1) {
                 playVideo(0);
             }
             
-            e.target.value = ''; // Reset input
+            e.target.value = ''; 
         });
 
         function renderWatchlist() {
-            // Clear current list items (keep the FAB input label)
             const existingItems = watchlistContainer.querySelectorAll('.list-item');
             existingItems.forEach(item => item.remove());
 
@@ -495,9 +581,10 @@
             
             videoWrapper.classList.remove('no-media');
             video.src = media.url;
+            video.load(); 
             videoTitle.textContent = media.name;
             
-            renderWatchlist(); // Update active UI
+            renderWatchlist(); 
             
             progressFill.style.width = `0%`;
             progressSlider.value = 0;
@@ -510,7 +597,6 @@
             if (currentIndex < playlist.length - 1) {
                 playVideo(currentIndex + 1);
             } else {
-                // End of playlist
                 videoWrapper.classList.add('paused');
                 playIcon.style.display = 'block';
                 pauseIcon.style.display = 'none';
@@ -580,10 +666,23 @@
             isScrubbing = false;
         });
 
-        muteBtn.addEventListener('click', () => {
-            video.muted = !video.muted;
+        // --- Dual Volume Sync Logic ---
+        function syncVolume(val) {
+            video.volume = val;
+            video.muted = val === "0" || val === 0;
+            inlineVolumeSlider.value = val;
+            settingsVolumeSlider.value = val;
+            volVal.textContent = Math.round(val * 100);
             volumeIcon.style.display = video.muted ? 'none' : 'block';
             muteIcon.style.display = video.muted ? 'block' : 'none';
+        }
+
+        inlineVolumeSlider.addEventListener('input', (e) => syncVolume(e.target.value));
+        settingsVolumeSlider.addEventListener('input', (e) => syncVolume(e.target.value));
+
+        muteBtn.addEventListener('click', () => {
+            const newVal = video.muted ? (inlineVolumeSlider.value > 0 ? inlineVolumeSlider.value : 1) : 0;
+            syncVolume(newVal);
         });
 
         // Simple Speed Toggle
@@ -593,6 +692,8 @@
             speedIdx = (speedIdx + 1) % speeds.length;
             video.playbackRate = speeds[speedIdx];
             speedBtn.textContent = `${speeds[speedIdx]}x`;
+            fpsSlider.value = speeds[speedIdx];
+            fpsVal.textContent = speeds[speedIdx];
         });
 
         fullscreenBtn.addEventListener('click', () => {
@@ -616,6 +717,44 @@
 
         themeSelect.addEventListener('change', (e) => {
             document.documentElement.setAttribute('data-theme', e.target.value);
+        });
+
+        // Settings Visual Filters Logic
+        function applyFilters() {
+            brightVal.textContent = brightSlider.value;
+            contrastVal.textContent = contrastSlider.value;
+            satVal.textContent = satSlider.value;
+            video.style.filter = `brightness(${brightSlider.value}%) contrast(${contrastSlider.value}%) saturate(${satSlider.value}%)`;
+        }
+        brightSlider.addEventListener('input', applyFilters);
+        contrastSlider.addEventListener('input', applyFilters);
+        satSlider.addEventListener('input', applyFilters);
+
+        fpsSlider.addEventListener('input', (e) => {
+            fpsVal.textContent = e.target.value;
+            video.playbackRate = e.target.value;
+            speedBtn.textContent = `${e.target.value}x`;
+            
+            // Sync speed array index
+            speedIdx = speeds.indexOf(parseFloat(e.target.value));
+            if(speedIdx === -1) speedIdx = 0;
+        });
+
+        resetSettingsBtn.addEventListener('click', () => {
+            brightSlider.value = 100;
+            contrastSlider.value = 100;
+            satSlider.value = 100;
+            fpsSlider.value = 1;
+            themeSelect.value = "dark";
+            document.documentElement.setAttribute('data-theme', 'dark');
+            applyFilters();
+            
+            video.playbackRate = 1;
+            speedBtn.textContent = `1x`;
+            fpsVal.textContent = `1`;
+            speedIdx = 0;
+            
+            syncVolume(1);
         });
 
     </script>
